@@ -15,12 +15,10 @@ from os import path
 
 if path.exists("settings.local.yaml"):
     file = open("settings.local.yaml")
-    settings = yaml.safe_load(file)
-    file.close()
 else:
     file = open("settings.yaml")
-    settings = yaml.safe_load(file)
-    file.close()
+settings = yaml.safe_load(file)
+file.close()
 
 PORT = settings["email"]["port"]
 SMTP_SERVER = settings["email"]["smtp_server"]
