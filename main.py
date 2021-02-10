@@ -162,3 +162,4 @@ while True:
         message_text += "<br>".join(added)
     if removed or added:
         send_mail(message_text)
+    thesis = new_thesis
