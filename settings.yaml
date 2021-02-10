@@ -1,0 +1,12 @@
+email:
+  port: 465
+  smtp_server: "smtp.gmail.com"
+  sender_email: "test@gmail.com"
+  sender_password: "password123"
+  receivers:
+    - "receiver1@gmail.com"
+    - "receiver2@gmail.com"
+
+is_muni:
+  username: "123456"
+  password: "password321"
