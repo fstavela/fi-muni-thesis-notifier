@@ -2,3 +2,4 @@ venv/
 .idea/
 debug.log
 settings.local.yaml
+nohup.out
