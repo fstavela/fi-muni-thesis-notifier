@@ -55,10 +55,10 @@ logging.basicConfig(
 )
 
 
-def send_mail(message):
+def send_mail(message, subject="Lackove bakalárky"):
     logging.info(f"Sending email from {SENDER_EMAIL} to {RECEIVERS}")
     msg = MIMEText(message, "html", "utf-8")
-    msg["Subject"] = "Lackove bakalárky"
+    msg["Subject"] = subject
     msg["From"] = SENDER_EMAIL
     msg["To"] = ", ".join(RECEIVERS)
     context = ssl.create_default_context()
@@ -94,7 +94,7 @@ def login(session):
 
 
 def get_bachelor_thesis_url(session):
-    logging.info(f"Accessing {IS_LOGIN_URL}")
+    logging.info(f"Accessing {IS_THESIS_URL}")
     res = session.get(IS_THESIS_URL)
     update_headers(session)
     sleep(randint(800, 1500) / 1000)
@@ -105,7 +105,9 @@ def get_bachelor_thesis_url(session):
     return url
 
 
-def get_thesis(session, url):
+def get_thesis(session, url, sorted_by_update=True):
+    if sorted_by_update:
+        url += ";sorter=poslmod"
     logging.info(f"Trying to get thesis from {url}")
     res = session.get(url)
     update_headers(session)
@@ -131,35 +133,42 @@ thesis_url = get_bachelor_thesis_url(req_session)
 thesis = get_thesis(req_session, thesis_url)
 
 message_text = f"Práve sa spúšťam ty {choice(SWEARS)}!<br><br>"
-message_text += f"Tu máš aktuálne témy ty {choice(SWEARS)}:<br>"
+message_text += f"Tu máš aktuálne témy zoradené podla poslednej modifikácie ty {choice(SWEARS)}:<br>"
 message_text += "<br>".join(thesis)
 message_text += f"<br><br>Ak sa niečo zmení, tak ti dám vedieť ty {choice(SWEARS)}."
 send_mail(message_text)
 
 while True:
-    time_to_sleep = randint(250, 350)
+    time_to_sleep = randint(60, 120)
     logging.info(f"Sleeping for {time_to_sleep} seconds")
     sleep(time_to_sleep)
-    message_text = f"Zmenil sa zoznam tém ty {choice(SWEARS)}!<br>"
+    subject = "Lackove bakalárky"
     try:
         new_thesis = get_thesis(req_session, thesis_url)
     except Exception:
         logging.error(f"Something went wrong!\n{traceback.format_exc()}")
+        subject = "(Pokazené) " + subject
         message_text = f"Dačo sa pokazilo ty {choice(SWEARS)}!<br>"
         message_text += traceback.format_exc()
         send_mail(message_text)
         break
+    message_text = f"Zmenil sa zoznam tém ty {choice(SWEARS)}!<br>"
+    added = list(set(new_thesis) - set(thesis))
+    if added:
+        logging.info(f"These thesis were added: {added}")
+        subject = "(Pridané) " + subject
+        message_text += f"<br>Tieto témy boli pridané ty {choice(SWEARS)}:<br>"
+        message_text += "<br>".join(added)
     removed = list(set(thesis) - set(new_thesis))
     if removed:
         logging.info(f"These thesis were removed: {removed}")
+        if added:
+            subject = "(Pridané/Odstránené) " + subject
+        else:
+            subject = "(Odstránené) " + subject
         message_text += f"<br>Tieto témy boli odstránené ty {choice(SWEARS)}:<br>"
         message_text += "<br>".join(removed)
         message_text += "<br>"
-    added = list(set(new_thesis) - set(thesis))
-    if added:
-        logging.info(f"These thesis were added: {removed}")
-        message_text += f"<br>Tieto témy boli pridané ty {choice(SWEARS)}:<br>"
-        message_text += "<br>".join(added)
     if removed or added:
         send_mail(message_text)
     thesis = new_thesis
