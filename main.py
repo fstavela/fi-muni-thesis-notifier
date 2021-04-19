@@ -159,6 +159,7 @@ while True:
         subject = "(Pridané) " + subject
         message_text += f"<br>Tieto témy boli pridané ty {choice(SWEARS)}:<br>"
         message_text += "<br>".join(added)
+        message_text += "<br>"
     removed = list(set(thesis) - set(new_thesis))
     if removed:
         logging.info(f"These thesis were removed: {removed}")
@@ -168,7 +169,6 @@ while True:
             subject = "(Odstránené) " + subject
         message_text += f"<br>Tieto témy boli odstránené ty {choice(SWEARS)}:<br>"
         message_text += "<br>".join(removed)
-        message_text += "<br>"
     if removed or added:
         send_mail(message_text, subject)
     thesis = new_thesis
